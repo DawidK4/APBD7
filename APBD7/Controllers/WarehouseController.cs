@@ -1,12 +1,33 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using APBD7.Models;
+using APBD7.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 
 namespace APBD7.Controllers;
 
-
-[Microsoft.AspNetCore.Components.Route("api/warehouse")]
 [ApiController]
+[Route("api/warehouse")]
 public class WarehouseController : ControllerBase
 {
-    [HttpPost]
-    public Task<IActionResult> 
+    private readonly DbService _dbService;
+
+    public WarehouseController(DbService dbService)
+    {
+        _dbService = dbService;
+    }
+    
+    [HttpPost("addProductToWarehouse")]
+    public async Task<IActionResult> AddProductToWarehouse([FromBody] WarehouseRequest warehouseRequest)
+    {
+        var (rowNumber, errorMessage) = await _dbService.CheckDataValidity(warehouseRequest.IdProduct, warehouseRequest.IdWarehouse, warehouseRequest.Amount);
+
+        if (rowNumber != -1)
+        {
+            return Ok($"Data is correct. Row number: {rowNumber}");
+        }
+        else
+        {
+            return BadRequest(errorMessage);
+        }
+    }
 }
